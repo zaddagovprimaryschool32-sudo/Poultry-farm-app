@@ -21,6 +21,8 @@
         input, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:hover { background: #059669; }
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .btn-delete:hover { background: #dc2626; }
         .cage-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
         th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: center; }
@@ -92,7 +94,7 @@
         <div class="table-section">
             <h3>ডিম সংগ্রহের ইতিহাস</h3>
             <table>
-                <thead><tr><th>তারিখ</th><th>খাঁচা ১</th><th>খাঁচা ২</th><th>খাঁচা ৩</th><th>খাঁচা ৪</th><th>মোট</th></tr></thead>
+                <thead><tr><th>তারিখ</th><th>খাঁচা ১</th><th>খাঁচা ২</th><th>খাঁচা ৩</th><th>খাঁচা ৪</th><th>মোট</th><th>অ্যাকশন</th></tr></thead>
                 <tbody id="eggTableBody"></tbody>
             </table>
         </div>
@@ -116,7 +118,7 @@
         <div class="table-section">
             <h3>খরচের ইতিহাস</h3>
             <table>
-                <thead><tr><th>তারিখ</th><th>খাত</th><th>বিবরণ</th><th>টাকা (৳)</th></tr></thead>
+                <thead><tr><th>তারিখ</th><th>খাত</th><th>বিবরণ</th><th>টাকা (৳)</th><th>অ্যাকশন</th></tr></thead>
                 <tbody id="expTableBody"></tbody>
             </table>
         </div>
@@ -152,11 +154,10 @@
 </div>
 
 <script>
-    // প্রাথমিক ডেটা সেটিং (তানভীর ভাইয়ের সর্বশেষ তথ্য অনুযায়ী)
     let eggs = JSON.parse(localStorage.getItem('poultry_eggs')) || [
         { date: '2026-07-25', c1: 4, c2: 3, c3: 1, c4: 1, total: 9 }
     ];
-    let initialPrevEggs = 113; // ২৫ তারিখের আগের সংগ্রহ
+    let initialPrevEggs = 113;
 
     let expenses = JSON.parse(localStorage.getItem('poultry_exp')) || [
         { date: '2026-06-24', cat: 'খাবার', desc: 'লেয়ার -১ ফিড (১৩.২ কেজি)', amount: 600 },
@@ -165,11 +166,7 @@
         { date: '2026-07-20', cat: 'অন্যান্য', desc: 'প্রারম্ভিক সেটআপ ও ওষুধ খরচ সামারি', amount: 4970 }
     ];
 
-    let sales = JSON.parse(localStorage.getItem('poultry_sales')) || [
-        { date: '2026-07-20', type: 'বিক্রি', qty: 30, rate: 15, total: 450 },
-        { date: '2026-07-23', type: 'পরিবার', qty: 83, rate: 15, total: 1245 },
-        { date: '2026-07-25', type: 'পরিবার', qty: 9, rate: 15, total: 135 }
-    ];
+    let sales = JSON.parse(localStorage.getItem('poultry_sales')) || [];
 
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -196,10 +193,34 @@
 
     function renderTables() {
         let eggTb = document.getElementById('eggTableBody');
-        eggTb.innerHTML = eggs.map(e => `<tr><td>${e.date}</td><td>${e.c1}</td><td>${e.c2}</td><td>${e.c3}</td><td>${e.c4}</td><td><b>${e.total}</b></td></tr>`).join('');
+        eggTb.innerHTML = eggs.map((e, index) => `
+            <tr>
+                <td>${e.date}</td><td>${e.c1}</td><td>${e.c2}</td><td>${e.c3}</td><td>${e.c4}</td><td><b>${e.total}</b></td>
+                <td><button class="btn-delete" onclick="deleteEgg(${index})">ডিলিট 🗑️</button></td>
+            </tr>`).join('');
 
         let expTb = document.getElementById('expTableBody');
-        expTb.innerHTML = expenses.map(e => `<tr><td>${e.date}</td><td>${e.cat}</td><td>${e.desc}</td><td>৳${e.amount}</td></tr>`).join('');
+        expTb.innerHTML = expenses.map((e, index) => `
+            <tr>
+                <td>${e.date}</td><td>${e.cat}</td><td>${e.desc}</td><td>৳${e.amount}</td>
+                <td><button class="btn-delete" onclick="deleteExp(${index})">ডিলিট 🗑️</button></td>
+            </tr>`).join('');
+    }
+
+    function deleteEgg(index) {
+        if(confirm('আপনি কি এই ডিমের এন্ট্রিটি মুছে ফেলতে চান?')) {
+            eggs.splice(index, 1);
+            localStorage.setItem('poultry_eggs', JSON.stringify(eggs));
+            updateDashboard();
+        }
+    }
+
+    function deleteExp(index) {
+        if(confirm('আপনি কি এই খরচের এন্ট্রিটি মুছে ফেলতে চান?')) {
+            expenses.splice(index, 1);
+            localStorage.setItem('poultry_exp', JSON.stringify(expenses));
+            updateDashboard();
+        }
     }
 
     document.getElementById('eggForm').onsubmit = function(e) {
@@ -246,7 +267,6 @@
         });
     }
 
-    // আজকের তারিখ ডিফল্ট বসানো
     document.getElementById('eggDate').valueAsDate = new Date();
     document.getElementById('expDate').valueAsDate = new Date();
     document.getElementById('saleDate').valueAsDate = new Date();
