@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>তানভীর ভাইয়ের পোল্ট্রি খামার ট্র্যাকার</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #10b981; --dark: #1f2937; --light: #f3f4f6; --danger: #ef4444; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0fdf4; margin: 0; padding: 15px; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1, h2, h3 { text-align: center; color: var(--dark); margin-bottom: 10px; }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid var(--primary); }
+        .card.danger { border-bottom-color: var(--danger); }
+        .card h4 { margin: 0; font-size: 0.9rem; color: #6b7280; }
+        .card p { margin: 8px 0 0; font-size: 1.4rem; font-weight: bold; }
+        .form-section, .table-section { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        input, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #059669; }
+        .cage-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: center; }
+        th { background: var(--light); }
+        .chart-container { position: relative; height: 250px; width: 100%; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .nav-tabs button { background: #e5e7eb; color: var(--dark); }
+        .nav-tabs button.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🐔 তানভীর ভাইয়ের পোল্ট্রি খামার</h1>
+    <p style="text-align:center; margin-top:-5px; color:#666;">ব্রাহ্মণবাড়িয়া সদর | মোট ফাউমি মুরগি: ১৪টি</p>
+
+    <!-- ড্যাশবোর্ড কার্ড -->
+    <div class="grid-cards">
+        <div class="card">
+            <h4>প্রারম্ভিক মূলধন</h4>
+            <p>৳২৪,৫৫০</p>
+        </div>
+        <div class="card">
+            <h4>মোট ডিম সংগ্রহ</h4>
+            <p id="dash-total-eggs">১২২ টি</p>
+        </div>
+        <div class="card">
+            <h4>মোট খরচ (খাবার/ওষুধ)</h4>
+            <p id="dash-total-expense" style="color:var(--danger)">৳৬,৬০০</p>
+        </div>
+        <div class="card">
+            <h4>মোট ডিমের মূল্য</h4>
+            <p id="dash-total-revenue" style="color:var(--primary)">৳১,৮৩০</p>
+        </div>
+        <div class="card danger">
+            <h4>রানিং লাভ / ক্ষতি</h4>
+            <p id="dash-net-balance" style="color:var(--danger)">- ৳৪,৭৭০</p>
+        </div>
+    </div>
+
+    <!-- নেভিগেশন ট্যাব -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('egg-tab')">🥚 ডিম সংগ্রহ</button>
+        <button class="tab-btn" onclick="switchTab('expense-tab')">🌾 খরচ (খাবার/ওষুধ)</button>
+        <button class="tab-btn" onclick="switchTab('sale-tab')">💰 ডিম বিক্রি/খাওয়া</button>
+        <button class="tab-btn" onclick="switchTab('chart-tab')">📊 গ্রাফ & রিপোর্ট</button>
+    </div>
+
+    <!-- ১. ডিম সংগ্রহ ট্যাব -->
+    <div id="egg-tab" class="tab-content active">
+        <div class="form-section">
+            <h3>দৈনিক ডিম এন্ট্রি</h3>
+            <form id="eggForm">
+                <div class="form-group">
+                    <label>তারিখ:</label>
+                    <input type="date" id="eggDate" required>
+                </div>
+                <div class="cage-inputs">
+                    <div class="form-group"><label>খাঁচা ১ (উপরে বাম):</label><input type="number" id="c1" value="0" min="0"></div>
+                    <div class="form-group"><label>খাঁচা ২ (উপরে ডান):</label><input type="number" id="c2" value="0" min="0"></div>
+                    <div class="form-group"><label>খাঁচা ৩ (নিচে ডান):</label><input type="number" id="c3" value="0" min="0"></div>
+                    <div class="form-group"><label>খাঁচা ৪ (নিচে বাম):</label><input type="number" id="c4" value="0" min="0"></div>
+                </div>
+                <button type="submit">ডিম সংগ্রহ সেভ করুন</button>
+            </form>
+        </div>
+        <div class="table-section">
+            <h3>ডিম সংগ্রহের ইতিহাস</h3>
+            <table>
+                <thead><tr><th>তারিখ</th><th>খাঁচা ১</th><th>খাঁচা ২</th><th>খাঁচা ৩</th><th>খাঁচা ৪</th><th>মোট</th></tr></thead>
+                <tbody id="eggTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ২. খরচ ট্যাব -->
+    <div id="expense-tab" class="tab-content">
+        <div class="form-section">
+            <h3>খাবার ও ওষুধ খরচ এন্ট্রি</h3>
+            <form id="expForm">
+                <div class="form-group"><label>তারিখ:</label><input type="date" id="expDate" required></div>
+                <div class="form-group">
+                    <label>খাত:</label>
+                    <select id="expCategory"><option>খাবার (ফিড/ভূষি)</option><option>ওষুধ/ভ্যাকসিন</option><option>পাত্র/অন্যান্য</option></select>
+                </div>
+                <div class="form-group"><label>বিবরণ:</label><input type="text" id="expDesc" placeholder="যেমন: লேயার-১ ফিড" required></div>
+                <div class="form-group"><label>মোট টাকা (৳):</label><input type="number" id="expAmount" required></div>
+                <button type="submit">খরচ সেভ করুন</button>
+            </form>
+        </div>
+        <div class="table-section">
+            <h3>খরচের ইতিহাস</h3>
+            <table>
+                <thead><tr><th>তারিখ</th><th>খাত</th><th>বিবরণ</th><th>টাকা (৳)</th></tr></thead>
+                <tbody id="expTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ৩. বিক্রি/খাওয়া ট্যাব -->
+    <div id="sale-tab" class="tab-content">
+        <div class="form-section">
+            <h3>ডিম বিক্রি / পারিবারিক ব্যবহার</h3>
+            <form id="saleForm">
+                <div class="form-group"><label>তারিখ:</label><input type="date" id="saleDate" required></div>
+                <div class="form-group">
+                    <label>বিবরণ:</label>
+                    <select id="saleType"><option value="বিক্রি">গ্রাহকের কাছে বিক্রি</option><option value="পরিবার">পরিবারে ব্যবহার (Drawings)</option></select>
+                </div>
+                <div class="form-group"><label>ডিমের সংখ্যা (পিস):</label><input type="number" id="saleQty" required></div>
+                <div class="form-group"><label>প্রতি পিস দর (৳):</label><input type="number" id="saleRate" value="15" required></div>
+                <button type="submit">এন্ট্রি সেভ করুন</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ৪. গ্রাফ ট্যাব -->
+    <div id="chart-tab" class="tab-content">
+        <div class="form-section">
+            <h3>খামারের সার্বিক অবস্থা গ্রাফ</h3>
+            <div class="chart-container">
+                <canvas id="financeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // প্রাথমিক ডেটা সেটিং (তানভীর ভাইয়ের সর্বশেষ তথ্য অনুযায়ী)
+    let eggs = JSON.parse(localStorage.getItem('poultry_eggs')) || [
+        { date: '2026-07-25', c1: 4, c2: 3, c3: 1, c4: 1, total: 9 }
+    ];
+    let initialPrevEggs = 113; // ২৫ তারিখের আগের সংগ্রহ
+
+    let expenses = JSON.parse(localStorage.getItem('poultry_exp')) || [
+        { date: '2026-06-24', cat: 'খাবার', desc: 'লேயার-১ ফিড (১৩.২ কেজি)', amount: 600 },
+        { date: '2026-07-16', cat: 'খাবার ও পাত্র', desc: 'ফিড ও পাত্র', amount: 570 },
+        { date: '2026-07-19', cat: 'খাবার', desc: 'ফিড, ভূষি, কার্টুন ও ভাড়া', amount: 460 },
+        { date: '2026-07-20', cat: 'অন্যান্য', desc: 'প্রারম্ভিক সেটআপ ও ওষুধ খরচ সামারি', amount: 4970 }
+    ];
+
+    let sales = JSON.parse(localStorage.getItem('poultry_sales')) || [
+        { date: '2026-07-20', type: 'বিক্রি', qty: 30, rate: 15, total: 450 },
+        { date: '2026-07-23', type: 'পরিবার', qty: 83, rate: 15, total: 1245 },
+        { date: '2026-07-25', type: 'পরিবার', qty: 9, rate: 15, total: 135 }
+    ];
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.target.classList.add('active');
+        if(tabId === 'chart-tab') renderChart();
+    }
+
+    function updateDashboard() {
+        let totalEggCollected = initialPrevEggs + eggs.reduce((sum, e) => sum + e.total, 0);
+        let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
+        let totalRev = totalEggCollected * 15; 
+        let net = totalRev - totalExp;
+
+        document.getElementById('dash-total-eggs').innerText = totalEggCollected + ' টি';
+        document.getElementById('dash-total-expense').innerText = '৳' + totalExp;
+        document.getElementById('dash-total-revenue').innerText = '৳' + totalRev;
+        document.getElementById('dash-net-balance').innerText = (net < 0 ? '- ৳' + Math.abs(net) : '৳' + net);
+        document.getElementById('dash-net-balance').style.color = net < 0 ? 'var(--danger)' : 'var(--primary)';
+
+        renderTables();
+    }
+
+    function renderTables() {
+        let eggTb = document.getElementById('eggTableBody');
+        eggTb.innerHTML = eggs.map(e => `<tr><td>${e.date}</td><td>${e.c1}</td><td>${e.c2}</td><td>${e.c3}</td><td>${e.c4}</td><td><b>${e.total}</b></td></tr>`).join('');
+
+        let expTb = document.getElementById('expTableBody');
+        expTb.innerHTML = expenses.map(e => `<tr><td>${e.date}</td><td>${e.cat}</td><td>${e.desc}</td><td>৳${e.amount}</td></tr>`).join('');
+    }
+
+    document.getElementById('eggForm').onsubmit = function(e) {
+        e.preventDefault();
+        let c1 = +document.getElementById('c1').value, c2 = +document.getElementById('c2').value;
+        let c3 = +document.getElementById('c3').value, c4 = +document.getElementById('c4').value;
+        let entry = { date: document.getElementById('eggDate').value, c1, c2, c3, c4, total: c1+c2+c3+c4 };
+        eggs.push(entry);
+        localStorage.setItem('poultry_eggs', JSON.stringify(eggs));
+        updateDashboard();
+        this.reset();
+    };
+
+    document.getElementById('expForm').onsubmit = function(e) {
+        e.preventDefault();
+        let entry = {
+            date: document.getElementById('expDate').value,
+            cat: document.getElementById('expCategory').value,
+            desc: document.getElementById('expDesc').value,
+            amount: +document.getElementById('expAmount').value
+        };
+        expenses.push(entry);
+        localStorage.setItem('poultry_exp', JSON.stringify(expenses));
+        updateDashboard();
+        this.reset();
+    };
+
+    function renderChart() {
+        let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
+        let totalEggCollected = initialPrevEggs + eggs.reduce((sum, e) => sum + e.total, 0);
+        let totalRev = totalEggCollected * 15;
+
+        new Chart(document.getElementById('financeChart'), {
+            type: 'bar',
+            data: {
+                labels: ['মোট খরচ', 'ডিমের আয় (মূল্য)'],
+                datasets: [{
+                    label: 'টাকা (৳)',
+                    data: [totalExp, totalRev],
+                    backgroundColor: ['#ef4444', '#10b981']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // আজকের তারিখ ডিফল্ট বসানো
+    document.getElementById('eggDate').valueAsDate = new Date();
+    document.getElementById('expDate').valueAsDate = new Date();
+    document.getElementById('saleDate').valueAsDate = new Date();
+
+    updateDashboard();
+</script>
+</body>
+</html>
