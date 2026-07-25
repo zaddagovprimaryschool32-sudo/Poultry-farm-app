@@ -43,7 +43,7 @@
     <div class="grid-cards">
         <div class="card">
             <h4>প্রারম্ভিক মূলধন</h4>
-            <p>৳২৪,৫৫০</p>
+            <p>৳২১,৬০০</p>
         </div>
         <div class="card">
             <h4>মোট ডিম সংগ্রহ</h4>
@@ -108,7 +108,7 @@
                     <label>খাত:</label>
                     <select id="expCategory"><option>খাবার (ফিড/ভূষি)</option><option>ওষুধ/ভ্যাকসিন</option><option>পাত্র/অন্যান্য</option></select>
                 </div>
-                <div class="form-group"><label>বিবরণ:</label><input type="text" id="expDesc" placeholder="যেমন: লேயার-১ ফিড" required></div>
+                <div class="form-group"><label>বিবরণ:</label><input type="text" id="expDesc" placeholder="যেমন: লেয়ার-১ ফিড" required></div>
                 <div class="form-group"><label>মোট টাকা (৳):</label><input type="number" id="expAmount" required></div>
                 <button type="submit">খরচ সেভ করুন</button>
             </form>
@@ -159,7 +159,7 @@
     let initialPrevEggs = 113; // ২৫ তারিখের আগের সংগ্রহ
 
     let expenses = JSON.parse(localStorage.getItem('poultry_exp')) || [
-        { date: '2026-06-24', cat: 'খাবার', desc: 'লேயার-১ ফিড (১৩.২ কেজি)', amount: 600 },
+        { date: '2026-06-24', cat: 'খাবার', desc: 'লেয়ার -১ ফিড (১৩.২ কেজি)', amount: 600 },
         { date: '2026-07-16', cat: 'খাবার ও পাত্র', desc: 'ফিড ও পাত্র', amount: 570 },
         { date: '2026-07-19', cat: 'খাবার', desc: 'ফিড, ভূষি, কার্টুন ও ভাড়া', amount: 460 },
         { date: '2026-07-20', cat: 'অন্যান্য', desc: 'প্রারম্ভিক সেটআপ ও ওষুধ খরচ সামারি', amount: 4970 }
