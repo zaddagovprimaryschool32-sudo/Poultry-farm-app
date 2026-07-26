@@ -10,11 +10,11 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0fdf4; margin: 0; padding: 15px; color: #333; }
         .container { max-width: 900px; margin: 0 auto; }
         h1, h2, h3 { text-align: center; color: var(--dark); margin-bottom: 10px; }
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border-bottom: 4px solid var(--primary); }
         .card.danger { border-bottom-color: var(--danger); }
-        .card h4 { margin: 0; font-size: 0.9rem; color: #6b7280; }
-        .card p { margin: 8px 0 0; font-size: 1.4rem; font-weight: bold; }
+        .card h4 { margin: 0; font-size: 0.85rem; color: #6b7280; }
+        .card p { margin: 8px 0 0; font-size: 1.3rem; font-weight: bold; }
         .form-section, .table-section { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 12px; }
         label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
@@ -48,20 +48,20 @@
             <p>৳২১,৬০০</p>
         </div>
         <div class="card">
-            <h4>মোট ডিম সংগ্রহ</h4>
-            <p id="dash-total-eggs">১২২ টি</p>
+            <h4>মোট সংগৃহীত ডিম</h4>
+            <p id="dash-total-eggs">০ টি</p>
         </div>
         <div class="card">
-            <h4>মোট খরচ (খাবার/ওষুধ)</h4>
-            <p id="dash-total-expense" style="color:var(--danger)">৳৬,৬০০</p>
+            <h4>মোট পরিচালন খরচ</h4>
+            <p id="dash-total-expense" style="color:var(--danger)">৳০</p>
         </div>
         <div class="card">
-            <h4>মোট ডিমের মূল্য</h4>
-            <p id="dash-total-revenue" style="color:var(--primary)">৳১,৮৩০</p>
+            <h4>মোট বিক্রি/উৎপাদন মূল্য</h4>
+            <p id="dash-total-revenue" style="color:var(--primary)">৳০</p>
         </div>
         <div class="card danger">
             <h4>রানিং লাভ / ক্ষতি</h4>
-            <p id="dash-net-balance" style="color:var(--danger)">- ৳৪,৭৭০</p>
+            <p id="dash-net-balance" style="color:var(--danger)">৳০</p>
         </div>
     </div>
 
@@ -127,17 +127,24 @@
     <!-- ৩. বিক্রি/খাওয়া ট্যাব -->
     <div id="sale-tab" class="tab-content">
         <div class="form-section">
-            <h3>ডিম বিক্রি / পারিবারিক ব্যবহার</h3>
+            <h3>ডিম বিক্রি / পারিবারিক ব্যবহার এন্ট্রি</h3>
             <form id="saleForm">
                 <div class="form-group"><label>তারিখ:</label><input type="date" id="saleDate" required></div>
                 <div class="form-group">
-                    <label>বিবরণ:</label>
+                    <label>ধরন:</label>
                     <select id="saleType"><option value="বিক্রি">গ্রাহকের কাছে বিক্রি</option><option value="পরিবার">পরিবারে ব্যবহার (Drawings)</option></select>
                 </div>
-                <div class="form-group"><label>ডিমের সংখ্যা (পিস):</label><input type="number" id="saleQty" required></div>
+                <div class="form-group"><label>ডিমের সংখ্যা (পিস):</label><input type="number" id="saleQty" placeholder="যেমন: ২০" required></div>
                 <div class="form-group"><label>প্রতি পিস দর (৳):</label><input type="number" id="saleRate" value="15" required></div>
-                <button type="submit">এন্ট্রি সেভ করুন</button>
+                <button type="submit">বিক্রি/ব্যবহার সেভ করুন</button>
             </form>
+        </div>
+        <div class="table-section">
+            <h3>বিক্রি ও ব্যবহারের ইতিহাস</h3>
+            <table>
+                <thead><tr><th>তারিখ</th><th>ধরন</th><th>সংখ্যা</th><th>দর</th><th>মোট (৳)</th><th>অ্যাকশন</th></tr></thead>
+                <tbody id="saleTableBody"></tbody>
+            </table>
         </div>
     </div>
 
@@ -155,18 +162,23 @@
 
 <script>
     let eggs = JSON.parse(localStorage.getItem('poultry_eggs')) || [
-        { date: '2026-07-25', c1: 4, c2: 3, c3: 1, c4: 1, total: 9 }
+        { date: '2026-07-24', c1: 2, c2: 3, c3: 2, c4: 1, total: 8 },
+        { date: '2026-07-25', c1: 0, c2: 1, c3: 0, c4: 0, total: 1 }
     ];
-    let initialPrevEggs = 113;
+    let initialPrevEggs = 113; // আগের সংগ্রহের ভিত্তি
 
     let expenses = JSON.parse(localStorage.getItem('poultry_exp')) || [
-        { date: '2026-06-24', cat: 'খাবার', desc: 'লেয়ার -১ ফিড (১৩.২ কেজি)', amount: 600 },
+        { date: '2026-06-24', cat: 'খাবার', desc: 'লেয়ার-১ ফিড (১৩.২ কেজি)', amount: 600 },
         { date: '2026-07-16', cat: 'খাবার ও পাত্র', desc: 'ফিড ও পাত্র', amount: 570 },
         { date: '2026-07-19', cat: 'খাবার', desc: 'ফিড, ভূষি, কার্টুন ও ভাড়া', amount: 460 },
         { date: '2026-07-20', cat: 'অন্যান্য', desc: 'প্রারম্ভিক সেটআপ ও ওষুধ খরচ সামারি', amount: 4970 }
     ];
 
-    let sales = JSON.parse(localStorage.getItem('poultry_sales')) || [];
+    let sales = JSON.parse(localStorage.getItem('poultry_sales')) || [
+        { date: '2026-07-20', type: 'বিক্রি', qty: 30, rate: 15, total: 450 },
+        { date: '2026-07-23', type: 'পরিবার', qty: 83, rate: 15, total: 1245 },
+        { date: '2026-07-26', type: 'বিক্রি', qty: 20, rate: 15, total: 300 }
+    ];
 
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -205,6 +217,13 @@
                 <td>${e.date}</td><td>${e.cat}</td><td>${e.desc}</td><td>৳${e.amount}</td>
                 <td><button class="btn-delete" onclick="deleteExp(${index})">ডিলিট 🗑️</button></td>
             </tr>`).join('');
+
+        let saleTb = document.getElementById('saleTableBody');
+        saleTb.innerHTML = sales.map((s, index) => `
+            <tr>
+                <td>${s.date}</td><td>${s.type}</td><td>${s.qty} টি</td><td>৳${s.rate}</td><td><b>৳${s.total}</b></td>
+                <td><button class="btn-delete" onclick="deleteSale(${index})">ডিলিট 🗑️</button></td>
+            </tr>`).join('');
     }
 
     function deleteEgg(index) {
@@ -219,6 +238,14 @@
         if(confirm('আপনি কি এই খরচের এন্ট্রিটি মুছে ফেলতে চান?')) {
             expenses.splice(index, 1);
             localStorage.setItem('poultry_exp', JSON.stringify(expenses));
+            updateDashboard();
+        }
+    }
+
+    function deleteSale(index) {
+        if(confirm('আপনি কি এই বিক্রির এন্ট্রিটি মুছে ফেলতে চান?')) {
+            sales.splice(index, 1);
+            localStorage.setItem('poultry_sales', JSON.stringify(sales));
             updateDashboard();
         }
     }
@@ -244,6 +271,23 @@
         };
         expenses.push(entry);
         localStorage.setItem('poultry_exp', JSON.stringify(expenses));
+        updateDashboard();
+        this.reset();
+    };
+
+    document.getElementById('saleForm').onsubmit = function(e) {
+        e.preventDefault();
+        let qty = +document.getElementById('saleQty').value;
+        let rate = +document.getElementById('saleRate').value;
+        let entry = {
+            date: document.getElementById('saleDate').value,
+            type: document.getElementById('saleType').value,
+            qty: qty,
+            rate: rate,
+            total: qty * rate
+        };
+        sales.push(entry);
+        localStorage.setItem('poultry_sales', JSON.stringify(sales));
         updateDashboard();
         this.reset();
     };
