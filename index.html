@@ -56,7 +56,7 @@
             <p id="dash-total-expense" style="color:var(--danger)">৳০</p>
         </div>
         <div class="card">
-            <h4>মোট বিক্রি/উৎপাদন মূল্য</h4>
+            <h4>মোট ডিম বিক্রি / মূল্য</h4>
             <p id="dash-total-revenue" style="color:var(--primary)">৳০</p>
         </div>
         <div class="card danger">
@@ -110,7 +110,7 @@
                     <label>খাত:</label>
                     <select id="expCategory"><option>খাবার (ফিড/ভূষি)</option><option>ওষুধ/ভ্যাকসিন</option><option>পাত্র/অন্যান্য</option></select>
                 </div>
-                <div class="form-group"><label>বিবরণ:</label><input type="text" id="expDesc" placeholder="যেমন: লেয়ার-১ ফিড" required></div>
+                <div class="form-group"><label>বিবরণ:</label><input type="text" id="expDesc" placeholder="যেমন: লேயার-১ ফিড" required></div>
                 <div class="form-group"><label>মোট টাকা (৳):</label><input type="number" id="expAmount" required></div>
                 <button type="submit">খরচ সেভ করুন</button>
             </form>
@@ -163,14 +163,15 @@
 <script>
     let eggs = JSON.parse(localStorage.getItem('poultry_eggs')) || [
         { date: '2026-07-24', c1: 2, c2: 3, c3: 2, c4: 1, total: 8 },
-        { date: '2026-07-25', c1: 0, c2: 1, c3: 0, c4: 0, total: 1 }
+        { date: '2026-07-25', c1: 3, c2: 2, c3: 2, c4: 2, total: 9 }
     ];
-    let initialPrevEggs = 113; // আগের সংগ্রহের ভিত্তি
+    let initialPrevEggs = 113;
 
+    // বানান ঠিক করা খাবারের নামসহ খরচের ডেটা
     let expenses = JSON.parse(localStorage.getItem('poultry_exp')) || [
         { date: '2026-06-24', cat: 'খাবার', desc: 'লেয়ার-১ ফিড (১৩.২ কেজি)', amount: 600 },
-        { date: '2026-07-16', cat: 'খাবার ও পাত্র', desc: 'ফিড ও পাত্র', amount: 570 },
-        { date: '2026-07-19', cat: 'খাবার', desc: 'ফিড, ভূষি, কার্টুন ও ভাড়া', amount: 460 },
+        { date: '2026-07-16', cat: 'খাবার ও পাত্র', desc: 'লেয়ার-১ ফিড ও পাত্র', amount: 570 },
+        { date: '2026-07-19', cat: 'খাবার', desc: 'লেয়ার-১ ফিড, ভূষি, কার্টুন ও ভাড়া', amount: 460 },
         { date: '2026-07-20', cat: 'অন্যান্য', desc: 'প্রারম্ভিক সেটআপ ও ওষুধ খরচ সামারি', amount: 4970 }
     ];
 
@@ -191,7 +192,7 @@
     function updateDashboard() {
         let totalEggCollected = initialPrevEggs + eggs.reduce((sum, e) => sum + e.total, 0);
         let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
-        let totalRev = totalEggCollected * 15; 
+        let totalRev = sales.reduce((sum, s) => sum + s.total, 0); 
         let net = totalRev - totalExp;
 
         document.getElementById('dash-total-eggs').innerText = totalEggCollected + ' টি';
@@ -294,13 +295,12 @@
 
     function renderChart() {
         let totalExp = expenses.reduce((sum, e) => sum + e.amount, 0);
-        let totalEggCollected = initialPrevEggs + eggs.reduce((sum, e) => sum + e.total, 0);
-        let totalRev = totalEggCollected * 15;
+        let totalRev = sales.reduce((sum, s) => sum + s.total, 0);
 
         new Chart(document.getElementById('financeChart'), {
             type: 'bar',
             data: {
-                labels: ['মোট খরচ', 'ডিমের আয় (মূল্য)'],
+                labels: ['মোট খরচ', 'মোট বিক্রি/আয়'],
                 datasets: [{
                     label: 'টাকা (৳)',
                     data: [totalExp, totalRev],
